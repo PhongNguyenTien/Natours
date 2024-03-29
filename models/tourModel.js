@@ -110,13 +110,12 @@ const tourSchema = new mongoose.Schema(
     guides: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
   },
   {
-    toJSON: { virtuals: true }, 
-    toObject: { virtuals: true }, 
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
 
 tourSchema.virtual('durationWeeks').get(function () {
-
   return this.duration / 7;
 });
 
@@ -137,12 +136,13 @@ tourSchema.pre('save', function (next) {
   next();
 });
 tourSchema.post('save', function (doc, next) {
-
   console.log('save successfully');
 
   next();
 });
 
+// indexing
+tourSchema.index({ price: 1, ratingsAverage: -1 });
 
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });

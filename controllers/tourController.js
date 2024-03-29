@@ -2,7 +2,7 @@ import Tour from '../models/tourModel.js';
 import APIFeature from '../utils/apiFeature.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
-import { deleteOne, getOne, updateOne } from './handlerFactory.js';
+import { deleteOne, getAll, getOne, updateOne } from './handlerFactory.js';
 
 // const checkID = (req, res, next, value) => {
 //   if (value * 1 > tours.length) {
@@ -22,20 +22,7 @@ const aliasTop5Tours = (req, res, next) => {
   next();
 };
 
-const getAllTours = catchAsync(async (req, res, next) => {
-  const feature = new APIFeature(Tour.find(), req.query);
-  feature.filter().sort().limitFields().paginate();
-
-  // EXECUTE QUERY
-  const tours = await feature.query;
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours: tours,
-    },
-  });
-});
+const getAllTours = getAll(Tour);
 
 const addTour = catchAsync(async (req, res, next) => {
   const newTour = await Tour.create(req.body); 

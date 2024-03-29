@@ -73,7 +73,7 @@ const getAll = (Model) => {
     const docs = await feature.query;
     res.status(200).json({
       status: 'success',
-      results: tours.length,
+      results: docs.length,
       data: {
         docs
       },
