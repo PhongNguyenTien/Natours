@@ -4,6 +4,7 @@ import {
   addReview,
   deleteReview,
   getAllReviews,
+  getAllReviewsByReviewId,
   getReviewById,
   updateReview,
 } from '../controllers/reviewController.js';
@@ -12,7 +13,7 @@ const reviewRouter = express.Router({mergeParams: true}); // cho phép lấy par
 
 reviewRouter.route('/').get(getAllReviews).post(protect, addReview);
 reviewRouter
-  .route('/:reviewId').get(getReviewById)
+  .route('/:id').get(getAllReviewsByReviewId)
   .patch(protect, updateReview)
   .delete(protect, deleteReview);
 

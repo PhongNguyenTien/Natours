@@ -2,16 +2,17 @@ import Tour from '../models/tourModel.js';
 import APIFeature from '../utils/apiFeature.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
+import { deleteOne, getOne, updateOne } from './handlerFactory.js';
 
-const checkID = (req, res, next, value) => {
-  if (value * 1 > tours.length) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Invalid ID',
-    });
-  }
-  next();
-};
+// const checkID = (req, res, next, value) => {
+//   if (value * 1 > tours.length) {
+//     return res.status(404).json({
+//       status: 'error',
+//       message: 'Invalid ID',
+//     });
+//   }
+//   next();
+// };
 
 const aliasTop5Tours = (req, res, next) => {
   req.query.limit = 5;
@@ -46,50 +47,11 @@ const addTour = catchAsync(async (req, res, next) => {
   });
 });
 
-const getTourByID = catchAsync(async (req, res, next) => {
-  
-  console.log(req.params.id )
+const getTourByID = getOne(Tour, {path: "reviews"})
 
-  const tour = await Tour.findById(req.params.id).populate('reviews')
-  
+const updateTour = updateOne(Tour);
 
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: tour,
-    },
-  });
-});
-
-const updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-const deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+const deleteTour = deleteOne(Tour);
 
 const getToursStats = catchAsync(async (req, res, next) => {
   const toursStats = await Tour.aggregate([
@@ -181,9 +143,8 @@ export {
   addTour,
   getTourByID,
   updateTour,
-  deleteTour,
-  checkID,
   aliasTop5Tours,
   getToursStats,
   getMonthlyPlan,
+  deleteTour,
 };

@@ -5,7 +5,6 @@ import {
   getTourByID,
   updateTour,
   deleteTour,
-  checkID,
   aliasTop5Tours,
   getToursStats,
   getMonthlyPlan,
@@ -25,7 +24,7 @@ tourRouter.route('/').get(protect, getAllTours).post(protect, addTour);
 tourRouter
   .route('/:id')
   .get(getTourByID)
-  .patch(protect, updateTour)
+  .patch(protect, restrictTo(['admin', 'lead-guide']), updateTour)
   .delete(protect, restrictTo(['admin', 'lead-guide']), deleteTour);
 tourRouter.use('/:tourId/reviews', reviewRouter)
 

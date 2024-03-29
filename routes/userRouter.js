@@ -3,7 +3,9 @@ import {
   getAllUsers,
   getUserByID,
   updateUserInfo,
-  inactiveAccount
+  inactiveAccount,
+  deleteUser,
+  updateUser,
 } from '../controllers/userController.js';
 import {
   signUp,
@@ -25,9 +27,11 @@ userRouter.route('/updatePassword').patch(protect, updatePassword);
 userRouter.route('/updateUserInformation').patch(protect, updateUserInfo);
 userRouter.route('/inactiveAccount').delete(protect, inactiveAccount);
 
-userRouter.route('/').get(protect, restrictTo(['admin']), getAllUsers);
+userRouter.route('/').get(protect, getAllUsers);
 userRouter
   .route('/:id')
-  .get(protect, restrictTo(['admin']), getUserByID);
+  .get(protect, getUserByID)
+  .delete(protect, restrictTo(['admin']), deleteUser)
+  .patch(protect, restrictTo(['admin']), updateUser);
 
 export default userRouter;

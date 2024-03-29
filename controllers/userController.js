@@ -2,6 +2,7 @@ import User from '../models/userModel.js';
 import APIFeature from '../utils/apiFeature.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
+import { deleteOne, getOne, updateOne } from './handlerFactory.js';
 
 const filterUpdateFields = (reqBody, fieldsArray) => {
   const updateFields = {};
@@ -38,7 +39,6 @@ const updateUserInfo = catchAsync(async (req, res, next) => {
 
   // 2. update current data
   const updateFields = filterUpdateFields(req.body, ['name', 'email']);
-  console.log('updateFields', updateFields);
   const updateUser = await User.findByIdAndUpdate(req.user.id, updateFields, {
     runValidators: true, 
     new: true,
@@ -69,20 +69,16 @@ const inactiveAccount = catchAsync(async (req, res, next) => {
   })
 })
 
-const getUserByID = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user
-    }
-  })
-});
+const getUserByID = getOne(User);
 
-
+// do NOT update password!
+const deleteUser = deleteOne(User);
+const updateUser = updateOne(User);
 export {
   getAllUsers,
   getUserByID,
   updateUserInfo,
-  inactiveAccount
+  inactiveAccount,
+  deleteUser,
+  updateUser
 };
