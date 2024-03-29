@@ -6,6 +6,7 @@ import {
   inactiveAccount,
   deleteUser,
   updateUser,
+  addIdParam,
 } from '../controllers/userController.js';
 import {
   signUp,
@@ -23,15 +24,21 @@ userRouter.route('/signup').post(signUp);
 userRouter.route('/login').post(login);
 userRouter.route('/forgotPassword').post(forgotPassword);
 userRouter.route('/resetPassword/:resetToken').patch(resetPassword);
-userRouter.route('/updatePassword').patch(protect, updatePassword);
-userRouter.route('/updateUserInformation').patch(protect, updateUserInfo);
-userRouter.route('/inactiveAccount').delete(protect, inactiveAccount);
 
-userRouter.route('/').get(protect, getAllUsers);
+// protect all below routes by middleware
+userRouter.use(protect);
+userRouter.route('/me').get(addIdParam, getUserByID);
+userRouter.route('/updatePassword').patch(updatePassword);
+userRouter.route('/updateUserInformation').patch(updateUserInfo);
+userRouter.route('/inactiveAccount').delete(inactiveAccount);
+
+// only admin:
+userRouter.use(restrictTo(['admin']));
+userRouter.route('/').get(getAllUsers);
 userRouter
   .route('/:id')
-  .get(protect, getUserByID)
-  .delete(protect, restrictTo(['admin']), deleteUser)
-  .patch(protect, restrictTo(['admin']), updateUser);
+  .get(getUserByID)
+  .delete(deleteUser)
+  .patch(updateUser);
 
 export default userRouter;

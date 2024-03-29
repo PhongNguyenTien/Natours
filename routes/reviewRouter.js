@@ -11,10 +11,13 @@ import {
 
 const reviewRouter = express.Router({mergeParams: true}); // cho phép lấy params từ parent route (reviewRouter có 1 parent là tourRouter)
 
-reviewRouter.route('/').get(getAllReviews).post(protect, addReview);
+reviewRouter.use(protect);
+
+reviewRouter.route('/').get(getAllReviews).post(restrictTo(['user']), addReview);
+
 reviewRouter
   .route('/:id').get(getAllReviewsByReviewId)
-  .patch(protect, updateReview)
-  .delete(protect, deleteReview);
+  .patch(restrictTo(['user']), updateReview)
+  .delete(restrictTo(['user']), deleteReview);
 
 export default reviewRouter;
