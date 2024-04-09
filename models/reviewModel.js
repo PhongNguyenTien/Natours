@@ -49,6 +49,49 @@ reviewSchema.pre(/^find/, function (next) {
   });
   next();
 });
+
+reviewSchema.statics.calRatingsPerTour = async function (tourId) {
+  const statsRatings = await this.aggregate([
+    {
+      $match: {
+        tour: tourId,
+      },
+    },
+    {
+      $group: {
+        _id: '$tour',
+        ratingsAverage: { $avg: '$rating' },
+        ratingsQuantity: { $sum: 1 },
+      },
+    },
+  ]);
+  console.log('statsRatings: ', statsRatings);
+  const updateRatingsTour = await Tour.findById(tourId);
+  if (statsRatings.length > 0) {
+    updateRatingsTour.ratingsAverage = statsRatings[0].ratingsAverage;
+    updateRatingsTour.ratingsQuantity = statsRatings[0].ratingsQuantity;
+  } else {
+    updateRatingsTour.ratingsAverage = 4.5;
+    updateRatingsTour.ratingsQuantity = 0;
+  }
+  await updateRatingsTour.save();
+};
+
+// calculate ratings per tour after create new review or update existing review
+reviewSchema.post('save', async function () {
+  this.constructor.calRatingsPerTour(this.tour);
+});
+
+// calculate ratings per tour after delete existing reviews
+reviewSchema.pre('findOneAndDelete', async function (next) {
+  this.doc = await this.clone().find();
+  console.log('this.doc: ', this.doc);
+  next();
+});
+reviewSchema.post('findOneAndDelete', async function () {
+  this.doc[0].constructor.calRatingsPerTour(this.doc[0].tour);
+});
+
 const Review = mongoose.model('Review', reviewSchema);
 
 export default Review;

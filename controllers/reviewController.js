@@ -9,9 +9,9 @@ const getAllReviewsByReviewId = getOne(Review);
 const getAllReviews = catchAsync(async (req, res, next) => {
   const feature = new APIFeature(Review.find(), req.query);
   feature.filter().sort().limitFields().paginate();
-  let {query} = feature;
+  let { query } = feature;
   if (req.params.tourId) {
-    query = query.find({tour: req.params.tourId});
+    query = query.find({ tour: req.params.tourId });
   }
   const reviews = await query;
   res.status(200).json({
@@ -63,7 +63,15 @@ const updateReview = catchAsync(async (req, res, next) => {
       new AppError('The review does not exist. Please try again!', 404),
     );
   }
-  updateReview.review = req.body.review;
+  if (!req.body.review && !req.body.rating) {
+    return next(new AppError('Please provide review or rating field!', 400));
+  }
+  if (req.body.review) {
+    updateReview.review = req.body.review;
+  }
+  if (req.body.rating) {
+    updateReview.rating = req.body.rating;
+  }
   await updateReview.save();
   res.status(200).json({
     status: 'success',
@@ -81,11 +89,12 @@ const deleteReview = catchAsync(async (req, res, next) => {
     );
     return;
   }
-
-  const deleteReview = await Review.deleteOne({
+  const deleteReview = await Review.findOneAndDelete({
     user: currentUser.id,
     _id: req.params.id,
   });
+
+  console.log("deleteReview", deleteReview)
   res.status(204).json({
     status: 'success',
   });
