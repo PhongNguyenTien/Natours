@@ -143,6 +143,7 @@ tourSchema.post('save', function (doc, next) {
 
 // indexing
 tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
@@ -165,8 +166,12 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 //AGGREGATION MIDDLEWARE
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+tourSchema.pre('aggregate', function (next) {       
+  if (Object.keys(this.pipeline()[0])[0] === '$geoNear') {
+    this.pipeline().splice(1, 0, { $match: { secretTour: { $ne: true } } });
+  } else {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  }
   console.log(this.pipeline());
   next();
 });

@@ -8,6 +8,8 @@ import {
   aliasTop5Tours,
   getToursStats,
   getMonthlyPlan,
+  getToursBasedOnCircle,
+  getDistanceFromUserToTour,
 } from '../controllers/tourController.js';
 import { protect, restrictTo } from '../controllers/authController.js';
 
@@ -26,6 +28,10 @@ tourRouter
   .patch(protect, restrictTo(['admin', 'lead-guide']), updateTour)
   .delete(protect, restrictTo(['admin', 'lead-guide']), deleteTour);
 tourRouter.use('/:tourId/reviews', reviewRouter)
+
+// find all available tours within a circle having the center is user's location.
+tourRouter.route('/near-tours/radius/:radius/center/:center').get(protect, getToursBasedOnCircle);
+tourRouter.route('/distances/center/:center').get(protect, getDistanceFromUserToTour)
 
 
 export default tourRouter;
