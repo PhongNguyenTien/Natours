@@ -50,6 +50,8 @@ reviewSchema.pre(/^find/, function (next) {
   next();
 });
 
+// combination index: each user can only 1 review for each tour
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
 reviewSchema.statics.calRatingsPerTour = async function (tourId) {
   const statsRatings = await this.aggregate([
     {

@@ -25,7 +25,7 @@ const aliasTop5Tours = (req, res, next) => {
 const getAllTours = getAll(Tour);
 
 const addTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body); 
+  const newTour = await Tour.create(req.body);
   res.status(201).json({
     status: 'success',
     data: {
@@ -34,7 +34,7 @@ const addTour = catchAsync(async (req, res, next) => {
   });
 });
 
-const getTourByID = getOne(Tour, {path: "reviews"})
+const getTourByID = getOne(Tour, { path: 'reviews' });
 
 const updateTour = updateOne(Tour);
 
@@ -44,12 +44,12 @@ const getToursStats = catchAsync(async (req, res, next) => {
   const toursStats = await Tour.aggregate([
     {
       $match: {
-        ratingsAverage: { $gte: 4.5 }, 
+        ratingsAverage: { $gte: 4.5 },
       },
     },
     {
       $group: {
-        _id: '$ratingsAverage', 
+        _id: '$ratingsAverage',
         numTours: { $sum: 1 },
         avgRatings: { $avg: '$ratingsAverage' },
         avgPrice: { $avg: '$price' },
@@ -95,9 +95,9 @@ const getMonthlyPlan = catchAsync(async (req, res, next) => {
     },
     {
       $group: {
-        _id: { $month: '$startDates' }, 
+        _id: { $month: '$startDates' },
         numToursStartPerMonth: { $sum: 1 },
-        tours: { $push: '$name' }, 
+        tours: { $push: '$name' },
       },
     },
     {
@@ -107,7 +107,7 @@ const getMonthlyPlan = catchAsync(async (req, res, next) => {
     },
     {
       $project: {
-        _id: 0, 
+        _id: 0,
       },
     },
     {
@@ -125,6 +125,64 @@ const getMonthlyPlan = catchAsync(async (req, res, next) => {
   });
 });
 
+// '/radius/:radius/center/:center'
+const getToursBasedOnCircle = catchAsync(async (req, res, next) => {
+  const { radius, center } = req.params;
+  // order of lat and long in data: [lat, long]
+  const [latitude, longitude] = center.split(',');
+  if (!latitude || !longitude) {
+    return next(
+      new AppError('Please provide both latitude and longitude!', 400),
+    );
+  }
+  const withinTours = await Tour.find({
+    startLocation: {
+      $geoWithin: { $centerSphere: [[longitude, latitude], radius / 6378.1] },
+    },
+  });
+  console.log('withinTours', withinTours);
+
+  res.status(200).json({
+    status: 'success',
+    result: withinTours.length,
+    data: {
+      nearTour: withinTours,
+    },
+  });
+});
+
+const getDistanceFromUserToTour = catchAsync(async (req, res, next) => {
+  const { center } = req.params;
+  const [latitude, longitude] = center.split(',');
+  if (!latitude || !longitude) {
+    return next(
+      new AppError('Please provide both latitude and longitude!', 400),
+    );
+  }
+  const toursAndDistance =
+    await Tour.aggregate([
+      {
+        $geoNear: {
+          near: { type: 'Point', coordinates: [longitude * 1, latitude * 1] },
+          distanceField: 'distance',
+          distanceMultiplier: 0.001,
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          distance: 1
+        }
+      }
+    ]);
+  console.log('tours and distance: ', toursAndDistance);
+
+  res.status(200).json({
+    status: 'success',
+    toursAndDistance,
+  });
+});
+
 export {
   getAllTours,
   addTour,
@@ -134,4 +192,6 @@ export {
   getToursStats,
   getMonthlyPlan,
   deleteTour,
+  getToursBasedOnCircle,
+  getDistanceFromUserToTour,
 };
